@@ -180,18 +180,19 @@ function animate() {
 }
 animate();
 
-/* ================= ぶいんモード ================= */
+/* ================= パーツを しろう ================= */
 const PARTS = [
   { id: 'eyepiece', name: '接眼レンズ', kana: 'せつがんレンズ', desc: '目で のぞくところの レンズ。ふつう 10倍に 大きく 見える。両目ではなく、片目で のぞくよ。' },
-  { id: 'tube', name: '鏡筒', kana: 'きょうとう', desc: 'レンズが 入っている 筒（つつ）。調節ねじを 回すと 上下に 動く。学校に よっては、鏡筒ではなく ステージが 上下する タイプも あるよ。' },
+  { id: 'tube', name: '鏡筒', kana: 'きょうとう', desc: 'レンズが 入っている 筒（つつ）。ピント調節ネジを 回すと 上下に 動く。学校に よっては、鏡筒ではなく ステージが 上下する タイプも あるよ。' },
   { id: 'revolver', name: 'レボルバー', desc: 'くるっと 回すと、対物レンズが カチッと 切りかわる。倍率を かえるときに 使う。' },
   { id: 'objective', name: '対物レンズ', kana: 'たいぶつレンズ', desc: '見たいものに いちばん 近い レンズ。4倍・10倍・40倍が あって、長いものほど 倍率が 高い。' },
   { id: 'stage', name: 'ステージ', desc: 'プレパラートを のせる 台。真ん中に 穴が あいて、下からの 光が 通る。' },
   { id: 'clip', name: 'クリップ', desc: 'プレパラートが ずれないように 止める 金具。' },
   { id: 'diaphragm', name: 'しぼり', desc: 'ステージの下に ある、光の 量を 調節する しくみ。明るすぎるときに 絞る。' },
   { id: 'mirror', name: '反射鏡', kana: 'はんしゃきょう', desc: '光を 反射させて、見たいものを 明るく 照らす 鏡。動かして、いちばん 明るくなる 向きを 探す。' },
-  { id: 'coarse', name: '粗動ねじ', kana: 'そどうねじ', desc: '調節ねじの 大きい方。鏡筒を 大きく 上下させる。ピントを だいたい 合わせるときに 使う。' },
-  { id: 'fine', name: '微動ねじ', kana: 'びどうねじ', desc: '調節ねじの 小さい方。鏡筒を ほんの少しだけ 動かして、ピントを ぴったりに 仕上げる。' },
+  { id: 'coarse', name: 'ピント調節ネジ（大）', kana: 'ピントちょうせつネジ（だい）', desc: '大きい調節ネジ。鏡筒を 大きく 上下させて、ピントを だいたい 合わせるときに 使うよ。' },
+  { id: 'fine', name: 'ピント調節ネジ（小）', kana: 'ピントちょうせつネジ（しょう）', desc: '小さい調節ネジ。鏡筒を 少しだけ 動かして、ピントを はっきり 合わせるよ。' },
+  
   { id: 'arm', name: 'アーム', desc: '顕微鏡を 持つときに つかむところ。持つときは、もう片方の 手を 土台の下に そえる。' },
   { id: 'base', name: '土台', kana: 'どだい', desc: '顕微鏡を 支える 台。水平な 場所に 置いて 使う。' }
 ];
@@ -224,7 +225,7 @@ function setNaviGuide(area, pose, message) {
   image.src = NAVI_WEB_BASE + '/' + id + '/expressions/' + pose + '.webp';
   messageEl.textContent = message;
 }
-setNaviGuide('parts', '03-thinking', '気になる部品を押して、光る場所と名前を見くらべよう。');
+setNaviGuide('parts', '03-thinking', '気になるパーツを押して、光る場所と名前を見くらべよう。');
 setNaviGuide('challenge', '07-encouraging', '手順を一つずつ確かめよう。失敗しても何度でもやり直せるよ。');
 let highlighted = [];
 function clearHighlight() {
@@ -328,10 +329,10 @@ const steps = [
   { title: 'プレパラートを のせよう', text: 'プレパラートは、スライドガラスに 見たいものと 水を のせ、カバーガラスを かけたもの。ステージに 置いて クリップで 止めるよ。見たいものが、穴の 真ん中に 来るように 置くのが コツ。', control: 'place' },
   { title: '見たいものを 真ん中へ', text: 'のぞいた景色では、見たいものが 右に ずれているよ。顕微鏡の 景色は 上下・左右が 逆に 見える。だから、見たいものが 右に 見えたら、プレパラートは 右へ 動かすと、景色の中では 左へ 動いて 真ん中に 来るよ。', control: 'center' },
   { title: '横から 見ながら 近づけよう', text: 'いちばん 大事な ところ！横から 見ながら、対物レンズを プレパラートに 近づける。のぞきながら 下げると、ぶつけて レンズを 傷つけてしまうよ。ボタンを おしている間だけ 下がる。緑の ゾーンで 止めよう。', control: 'lower' },
-  { title: 'のぞいて ピント（粗動ねじ）', text: '接眼レンズを のぞきながら、粗動ねじで 鏡筒を ゆっくり 上げていく。景色が はっきり 見えてきたら 成功。下げながら 合わせないのが ルールだよ。', control: 'coarse' },
-  { title: '微動ねじで 仕上げ', text: 'あと少し。微動ねじで ほんの少しずつ 動かして、ぴったりの ピントに しよう。', control: 'fine1' },
-  { title: 'レボルバーを 回して 100倍', text: 'もっと 大きく 見たいときは、レボルバーを カチッと 回して 対物レンズを 10倍に かえるよ（全部で100倍）。倍率が 上がると ピントが ずれるので、微動ねじで 合わせ直そう。', control: 'rev100' },
-  { title: '400倍に チャレンジ', text: '対物レンズ 40倍で、全部で 400倍。微生物の 体の つくりまで 見えるよ。微動ねじで 仕上げよう。', control: 'rev400' },
+  { title: 'のぞいて ピント（大きい調節ネジ）', text: '接眼レンズを のぞきながら、大きい調節ネジで 鏡筒を ゆっくり 上げていく。景色が はっきり 見えてきたら 成功。下げながら 合わせないのが ルールだよ。', control: 'coarse' },
+  { title: '小さい調節ネジで 仕上げ', text: 'あと少し。小さい調節ネジで ほんの少しずつ 動かして、ぴったりの ピントに しよう。', control: 'fine1' },
+  { title: 'レボルバーを 回して 100倍', text: 'もっと 大きく 見たいときは、レボルバーを カチッと 回して 対物レンズを 10倍に かえるよ（全部で100倍）。倍率が 上がると ピントが ずれるので、小さい調節ネジで 合わせ直そう。', control: 'rev100' },
+  { title: '400倍に チャレンジ', text: '対物レンズ 40倍で、全部で 400倍。もっと 細かいところを 観察できるよ。小さい調節ネジで ピントを 仕上げよう。', control: 'rev400' },
   { title: 'しぼりで 明るさを 調節', text: '倍率を 上げると、見える 範囲は 狭く、景色は 暗くなる。ステージの下の しぼりを 回して、光の 量を 調節しよう。', control: 'diaphragm' },
   { title: 'かたづけよう', text: '終わったら、レボルバーを いちばん 低い倍率に 戻してから、プレパラートを 外す。これが 正しい かたづけの 順番だよ。', control: 'cleanup' }
 ];
@@ -393,7 +394,7 @@ function showStep() {
     center: { pose: '03-thinking', message: '視野の中の見え方と、プレパラートを動かす向きに注目！' },
     lower: { pose: '07-encouraging', message: 'ここは大切。横から見て、ゆっくり近づけよう。' },
     coarse: { pose: '03-thinking', message: 'のぞきながら鏡筒を上げて、ピントが合うところを探そう。' },
-    fine1: { pose: '07-encouraging', message: '最後は少しずつ。微動ねじでくっきりさせよう。' },
+    fine1: { pose: '07-encouraging', message: '最後は少しずつ。小さい調節ネジでくっきりさせよう。' },
     rev100: { pose: '03-thinking', message: '倍率を上げたら、ピントも合わせ直すよ。' },
     rev400: { pose: '03-thinking', message: '高倍率では見える範囲が狭くなるよ。ゆっくり調整しよう。' },
     diaphragm: { pose: '03-thinking', message: '倍率を上げると暗くなることがあるね。光の量を調節しよう。' },
@@ -492,7 +493,7 @@ function showStep() {
     });
   }
   if (kind === 'coarse') {
-    const { wrap, input } = sliderRow('粗動ねじ（鏡筒を 上げる）', 0, 100, 0);
+    const { wrap, input } = sliderRow('大きい調節ネジ（鏡筒を 上げる）', 0, 100, 0);
     controlsEl.appendChild(wrap);
     setFeedback('ぼやけて 見えるね。ゆっくり 上げていこう。', '');
     input.addEventListener('input', () => {
@@ -504,7 +505,7 @@ function showStep() {
     });
   }
   if (kind === 'fine1') {
-    const { wrap, input } = sliderRow('微動ねじ', -50, 50, 28);
+    const { wrap, input } = sliderRow('小さい調節ネジ', -50, 50, 28);
     controlsEl.appendChild(wrap);
     input.addEventListener('input', () => {
       const v = Number(input.value);
@@ -524,8 +525,8 @@ function showStep() {
       view.mag = kind === 'rev100' ? 2.1 : 3.8;
       view.blur = 7;
       drawView();
-      setFeedback('倍率が 上がった！微動ねじで ピントを 合わせ直そう。', '');
-      const { wrap, input } = sliderRow('微動ねじ', -50, 50, startVal);
+      setFeedback('倍率が 上がった！小さい調節ネジで ピントを 合わせ直そう。', '');
+      const { wrap, input } = sliderRow('小さい調節ネジ', -50, 50, startVal);
       controlsEl.appendChild(wrap);
       input.addEventListener('input', () => {
         const v = Number(input.value);
