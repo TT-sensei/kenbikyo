@@ -502,26 +502,18 @@ function showStep() {
     });
   }
   if (kind === 'coarse') {
-    const hint = document.createElement('div'); hint.className = 'mag-box'; hint.textContent = '3Dの顕微鏡にある「ピント調節ネジ（大）」をドラッグして、ピントを合わせよう。'; controlsEl.appendChild(hint);
-    controlsEl.appendChild(wrap);
-    setFeedback('ぼやけて 見えるね。ゆっくり 上げていこう。', '');
-    input.addEventListener('input', () => {
-      const v = Number(input.value);
-      anim.tubeTarget = 0.34 - (v / 100) * 0.1;
-      view.blur = Math.abs(v - 58) / 58 * 15 + 0.4;
-      drawView();
-      if (Math.abs(v - 58) <= 5) { input.disabled = true; completeStep(); }
-    });
+    const hint = document.createElement('div');
+    hint.className = 'mag-box';
+    hint.textContent = '3Dの顕微鏡にある「ピント調節ネジ（大）」を上下にドラッグして、ピントを合わせよう。';
+    controlsEl.appendChild(hint);
+    setFeedback('ぼやけて見えるね。顕微鏡のネジをさわって動かそう。', '');
   }
   if (kind === 'fine1') {
-    const { wrap, input } = sliderRow('小さい調節ネジ', -50, 50, 28);
-    controlsEl.appendChild(wrap);
-    input.addEventListener('input', () => {
-      const v = Number(input.value);
-      view.blur = Math.abs(v - 8) / 50 * 5 + 0.2;
-      drawView();
-      if (Math.abs(v - 8) <= 4) { input.disabled = true; completeStep(); }
-    });
+    const hint = document.createElement('div');
+    hint.className = 'mag-box';
+    hint.textContent = '3Dの顕微鏡にある「ピント調節ネジ（小）」を上下にドラッグして、くっきりさせよう。';
+    controlsEl.appendChild(hint);
+    setFeedback('最後は少しずつ。小さいネジを動かしてね。', '');
   }
   if (kind === 'rev100' || kind === 'rev400') {
     const target = kind === 'rev100' ? -6 : 14;
