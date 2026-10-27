@@ -502,7 +502,7 @@ function showStep() {
     });
   }
   if (kind === 'coarse') {
-    const { wrap, input } = sliderRow('大きい調節ネジ（鏡筒を 上げる）', 0, 100, 0);
+    const hint = document.createElement('div'); hint.className = 'mag-box'; hint.textContent = '3Dの顕微鏡にある「ピント調節ネジ（大）」をドラッグして、ピントを合わせよう。'; controlsEl.appendChild(hint);
     controlsEl.appendChild(wrap);
     setFeedback('ぼやけて 見えるね。ゆっくり 上げていこう。', '');
     input.addEventListener('input', () => {
