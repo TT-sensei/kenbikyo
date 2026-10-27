@@ -571,14 +571,10 @@ function showStep() {
       view.blur = 7;
       drawView();
       setFeedback('倍率が 上がった！小さい調節ネジで ピントを 合わせ直そう。', '');
-      const { wrap, input } = sliderRow('小さい調節ネジ', -50, 50, startVal);
-      controlsEl.appendChild(wrap);
-      input.addEventListener('input', () => {
-        const v = Number(input.value);
-        view.blur = Math.abs(v - target) / 50 * 6 + 0.2;
-        drawView();
-        if (Math.abs(v - target) <= 5) { input.disabled = true; completeStep(); }
-      });
+      const hint = document.createElement('div');
+      hint.className = 'mag-box';
+      hint.textContent = '3Dの顕微鏡にある「ピント調節ネジ（小）」を上下にドラッグして、ピントを合わせ直そう。';
+      controlsEl.appendChild(hint);
     });
   }
   if (kind === 'diaphragm') {
