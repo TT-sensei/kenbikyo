@@ -136,6 +136,7 @@ scope.position.y = -0.55;
 /* 回転ドラッグ */
 let rotY = 0.55, rotX = 0.06, targetRotY = 0.55, targetRotX = 0.06;
 let dragging = false, lastX = 0, lastY = 0, lastTouchAt = 0;
+const reduceMotion = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 canvas.addEventListener('pointerdown', e => { dragging = true; lastX = e.clientX; lastY = e.clientY; canvas.setPointerCapture(e.pointerId); });
 canvas.addEventListener('pointermove', e => {
   if (!dragging) return;
@@ -144,6 +145,12 @@ canvas.addEventListener('pointermove', e => {
   lastX = e.clientX; lastY = e.clientY; lastTouchAt = performance.now();
 });
 canvas.addEventListener('pointerup', () => { dragging = false; lastTouchAt = performance.now(); });
+canvas.addEventListener('pointercancel', () => { dragging = false; lastTouchAt = performance.now(); });
+document.getElementById('resetView').addEventListener('click', () => {
+  targetRotY = 0.55;
+  targetRotX = 0.06;
+  lastTouchAt = performance.now();
+});
 
 function resize() {
   const w = canvas.clientWidth || canvas.parentElement.clientWidth;
@@ -159,7 +166,7 @@ resize();
 const anim = { tubeDown: 0, tubeTarget: 0, revRot: 0, revTarget: 0, mirrorTilt: -0.95 };
 function animate() {
   requestAnimationFrame(animate);
-  if (!dragging && performance.now() - lastTouchAt > 3500) targetRotY += 0.0016;
+  if (!reduceMotion && !dragging && performance.now() - lastTouchAt > 3500) targetRotY += 0.0016;
   rotY += (targetRotY - rotY) * 0.08;
   rotX += (targetRotX - rotX) * 0.08;
   scope.rotation.y = rotY;
@@ -191,6 +198,34 @@ const PARTS = [
 const partGrid = document.getElementById('partGrid');
 const partInfo = document.getElementById('partInfo');
 const partLabel = document.getElementById('partLabel');
+const NAVI_WEB_BASE = 'https://tt-sensei.github.io/navi-character-/assets/web/characters';
+const NAVI_IDS = ['riku', 'sora', 'kai', 'saku', 'tsuki', 'nami'];
+const lastNaviId = { parts: null, challenge: null };
+
+function setNaviGuide(area, pose, message) {
+  const image = document.getElementById(area + 'NaviImage');
+  const messageEl = document.getElementById(area + 'NaviMessage');
+  if (!image || !messageEl) return;
+
+  let choices = NAVI_IDS.filter(id => id !== lastNaviId[area]);
+  if (!choices.length) choices = NAVI_IDS;
+  const id = choices[Math.floor(Math.random() * choices.length)];
+  lastNaviId[area] = id;
+
+  const altByPose = {
+    '03-thinking': '考えているナビキャラ',
+    '06-troubled': '注意をうながすナビキャラ',
+    '07-encouraging': 'はげますナビキャラ',
+    '08-celebrating': '達成をよろこぶナビキャラ'
+  };
+  image.hidden = false;
+  image.alt = altByPose[pose] || '学習を案内するナビキャラ';
+  image.onerror = () => { image.hidden = true; };
+  image.src = NAVI_WEB_BASE + '/' + id + '/expressions/' + pose + '.webp';
+  messageEl.textContent = message;
+}
+setNaviGuide('parts', '03-thinking', '気になる部品を押して、光る場所と名前を見くらべよう。');
+setNaviGuide('challenge', '07-encouraging', '手順を一つずつ確かめよう。失敗しても何度でもやり直せるよ。');
 let highlighted = [];
 function clearHighlight() {
   highlighted.forEach(m => { if (m.material.emissive) { m.material = m.userData.origMat; } });
@@ -213,6 +248,7 @@ PARTS.forEach(part => {
     partLabel.textContent = part.name;
     partLabel.style.display = 'block';
     partInfo.innerHTML = '<strong>' + part.name + (part.kana ? '（' + part.kana + '）' : '') + '</strong><br>' + part.desc;
+    setNaviGuide('parts', '03-thinking', part.name + 'を見つけたね。はたらきも読んで、本物の顕微鏡と見くらべてみよう。');
   });
   partGrid.appendChild(b);
 });
@@ -319,13 +355,17 @@ function completeStep() {
   done.add(stepIdx);
   renderStars();
   setFeedback('できた！ 次へ 進もう。', 'good');
+  setNaviGuide('challenge', '08-celebrating', 'できたね！この調子で、次の手順も確かめよう。');
   setTimeout(() => { if (stepIdx < steps.length - 1) { stepIdx++; showStep(); } else { showClear(); } }, 1000);
 }
+let sliderCount = 0;
 function sliderRow(label, min, max, val) {
   const wrap = document.createElement('div');
   const lab = document.createElement('label');
   lab.textContent = label;
   const input = document.createElement('input');
+  input.id = 'control-range-' + (++sliderCount);
+  lab.htmlFor = input.id;
   input.type = 'range'; input.min = min; input.max = max; input.value = val;
   wrap.append(lab, input);
   return { wrap, input };
@@ -347,6 +387,20 @@ function showStep() {
   setFeedback('', '');
   renderStars();
   const kind = step.control;
+  const naviTips = {
+    mirror: { pose: '07-encouraging', message: 'まずは明るさを整えよう。ちょうどよい角度を探してね。' },
+    place: { pose: '03-thinking', message: '見たいものをステージの穴の上に置き、ずれないように止めよう。' },
+    center: { pose: '03-thinking', message: '視野の中の見え方と、プレパラートを動かす向きに注目！' },
+    lower: { pose: '07-encouraging', message: 'ここは大切。横から見て、ゆっくり近づけよう。' },
+    coarse: { pose: '03-thinking', message: 'のぞきながら鏡筒を上げて、ピントが合うところを探そう。' },
+    fine1: { pose: '07-encouraging', message: '最後は少しずつ。微動ねじでくっきりさせよう。' },
+    rev100: { pose: '03-thinking', message: '倍率を上げたら、ピントも合わせ直すよ。' },
+    rev400: { pose: '03-thinking', message: '高倍率では見える範囲が狭くなるよ。ゆっくり調整しよう。' },
+    diaphragm: { pose: '03-thinking', message: '倍率を上げると暗くなることがあるね。光の量を調節しよう。' },
+    cleanup: { pose: '07-encouraging', message: '片づけも大切な手順。低い倍率に戻してから外そう。' }
+  };
+  const naviTip = naviTips[kind] || { pose: '07-encouraging', message: 'あせらず、一つずつ確かめよう。' };
+  setNaviGuide('challenge', naviTip.pose, naviTip.message);
 
   if (kind === 'mirror') {
     const { wrap, input } = sliderRow('反射鏡の 角度', 0, 100, 8);
@@ -401,15 +455,21 @@ function showStep() {
       anim.tubeTarget = (100 - gap) / 100 * 0.34;
     };
     const start = e => {
-      e.preventDefault();
-      if (finished) return;
+      if (e.cancelable) e.preventDefault();
+      if (finished || timer) return;
+      if (e.pointerId !== undefined && b.setPointerCapture) {
+        try { b.setPointerCapture(e.pointerId); } catch (_) {}
+      }
       timer = setInterval(() => {
         gap = Math.max(0, gap - 1.6);
         setGap();
         if (gap <= 4) {
           clearInterval(timer);
-          gap = 100; setGap();
+          timer = null;
+          gap = 100;
+          setGap();
           setFeedback('あぶない！レンズが プレパラートに ぶつかるところだった。横から 見ながら、ゆっくり 近づけよう。もう一度。', 'bad');
+          setNaviGuide('challenge', '06-troubled', 'だいじょうぶ。もう一度できるよ。横から見て、ゆっくり近づけよう。');
         }
       }, 30);
     };
@@ -422,7 +482,14 @@ function showStep() {
     };
     b.addEventListener('pointerdown', start);
     b.addEventListener('pointerup', stop);
+    b.addEventListener('pointercancel', stop);
     b.addEventListener('pointerleave', stop);
+    b.addEventListener('keydown', e => {
+      if (e.key === 'Enter' || e.key === ' ') start(e);
+    });
+    b.addEventListener('keyup', e => {
+      if (e.key === 'Enter' || e.key === ' ') stop();
+    });
   }
   if (kind === 'coarse') {
     const { wrap, input } = sliderRow('粗動ねじ（鏡筒を 上げる）', 0, 100, 0);
@@ -509,6 +576,7 @@ function showStep() {
 }
 
 function showClear() {
+  setNaviGuide('challenge', '08-celebrating', '顕微鏡の使い方を最後まで確認できたね！本物でも安全に使おう。');
   stepBadge.textContent = 'クリア！';
   stepTitle.textContent = '顕微鏡マスター 認定！';
   stepText.textContent = '明るさの 調節から、横から見て 近づける、のぞきながら ピントを 合わせる、倍率の 上げ方、かたづけまで、全部の 手順が できたね。本物の 顕微鏡でも、この 順番で やってみよう。';
@@ -522,7 +590,7 @@ function showClear() {
     stepIdx = 0;
     view.brightness = 0.12; view.diaph = 1; view.offsetX = 0; view.blur = 16; view.mag = 1; view.hasSlide = false;
     slideGroup.visible = false;
-    anim.tubeTarget = 0; anim.mirrorTilt = -0.95;
+    anim.tubeTarget = 0; anim.tubeDown = 0; anim.revTarget = 0; anim.revRot = 0; anim.mirrorTilt = -0.95;
     showStep();
   });
   box.appendChild(b);
@@ -539,10 +607,14 @@ const partsPanel = document.getElementById('partsPanel');
 const challengePanel = document.getElementById('challengePanel');
 tabParts.addEventListener('click', () => {
   tabParts.classList.add('active'); tabChallenge.classList.remove('active');
+  tabParts.setAttribute('aria-pressed', 'true');
+  tabChallenge.setAttribute('aria-pressed', 'false');
   partsPanel.classList.remove('hidden'); challengePanel.classList.add('hidden');
 });
 tabChallenge.addEventListener('click', () => {
   tabChallenge.classList.add('active'); tabParts.classList.remove('active');
+  tabChallenge.setAttribute('aria-pressed', 'true');
+  tabParts.setAttribute('aria-pressed', 'false');
   challengePanel.classList.remove('hidden'); partsPanel.classList.add('hidden');
 });
 

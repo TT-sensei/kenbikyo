@@ -2,7 +2,7 @@
 <html lang="ja">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+<meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="theme-color" content="#fdf6e9">
 <title>けんびきょうラボ｜顕微鏡の使い方を練習しよう</title>
 <style>
@@ -52,6 +52,34 @@
   .side-card { padding: 16px; }
   .side-card h2 { font-size: 17px; margin: 0 0 8px; }
   .side-card p { font-size: 14px; line-height: 1.7; margin: 0 0 10px; }
+  .navi-guide {
+    display: flex; align-items: center; gap: 10px; min-height: 78px;
+    padding: 8px 10px; margin: 0 0 12px; border: 1px solid #d7e7f4;
+    border-radius: 14px; background: #f3f8ff;
+  }
+  .navi-guide img {
+    display: block; flex: 0 0 58px; width: 58px; height: 66px;
+    object-fit: contain;
+  }
+  .navi-guide img[hidden] { display: none; }
+  .navi-copy { flex: 1; min-width: 0; }
+  .side-card .navi-label {
+    margin: 0 0 2px; color: #55717f; font-size: 11px;
+    font-weight: 800; letter-spacing: .04em;
+  }
+  .side-card .navi-message { margin: 0; font-size: 13px; line-height: 1.55; }
+  .view-reset {
+    position: absolute; top: 12px; right: 12px; min-height: 38px;
+    padding: 7px 12px; border: 1px solid #d8e2e8; border-radius: 999px;
+    background: rgba(255,255,255,.92); color: #3a5260;
+    font: inherit; font-size: 12px; font-weight: 700; cursor: pointer;
+  }
+  .view-reset:focus-visible,
+  .mode-tabs button:focus-visible,
+  .part-grid button:focus-visible,
+  .big-button:focus-visible {
+    outline: 3px solid #e8862e; outline-offset: 3px;
+  }
   .part-grid { display: flex; flex-wrap: wrap; gap: 8px; }
   .part-grid button {
     font: inherit; font-size: 14px; font-weight: 700; cursor: pointer;
@@ -101,8 +129,8 @@
     <p class="subtitle">顕微鏡（けんびきょう）の 使い方を 練習しよう</p>
   </div>
   <nav class="mode-tabs" aria-label="モード">
-    <button type="button" id="tabParts" class="active">ぶいんを しろう</button>
-    <button type="button" id="tabChallenge">てじゅん チャレンジ</button>
+    <button type="button" id="tabParts" class="active" aria-pressed="true">ぶいんを しろう</button>
+    <button type="button" id="tabChallenge" aria-pressed="false">てじゅん チャレンジ</button>
   </nav>
 </header>
 
@@ -111,12 +139,20 @@
     <div class="stage-wrap">
       <canvas id="scene" aria-label="3Dの顕微鏡"></canvas>
       <div class="part-label" id="partLabel"></div>
+      <button type="button" class="view-reset" id="resetView">正面にもどす</button>
       <div class="stage-hint">ドラッグで くるっと 回せるよ</div>
     </div>
   </section>
 
   <section class="side-card" id="partsPanel">
     <h2>顕微鏡の ぶいん</h2>
+    <div class="navi-guide" role="group" aria-label="ナビキャラのヒント">
+      <img id="partsNaviImage" alt="考えているナビキャラ" width="58" height="66">
+      <div class="navi-copy">
+        <p class="navi-label">ナビキャラのヒント</p>
+        <p class="navi-message" id="partsNaviMessage" aria-live="polite">気になる部品を押して、名前とはたらきを見くらべよう。</p>
+      </div>
+    </div>
     <p>ボタンを おすと、3Dの顕微鏡で その場所が 光るよ。名前と はたらきを おぼえよう。</p>
     <div class="part-grid" id="partGrid"></div>
     <div style="height:12px"></div>
@@ -135,11 +171,18 @@
 
   <section class="side-card hidden" id="challengePanel">
     <div class="step-head">
-      <span class="step-badge" id="stepBadge">STEP 1 / 8</span>
+      <span class="step-badge" id="stepBadge">STEP 1 / 10</span>
       <span class="stars" id="stars"></span>
     </div>
     <h2 id="stepTitle">反射鏡で 明るくしよう</h2>
-    <p id="stepText"></p>
+    <p id="stepText" aria-live="polite"></p>
+    <div class="navi-guide" role="group" aria-label="手順のヒント">
+      <img id="challengeNaviImage" alt="はげますナビキャラ" width="58" height="66">
+      <div class="navi-copy">
+        <p class="navi-label">ナビキャラからひとこと</p>
+        <p class="navi-message" id="challengeNaviMessage" aria-live="polite">手順を一つずつ確かめよう。何度でもやり直せるよ。</p>
+      </div>
+    </div>
     <div class="view-wrap"><canvas id="eyeCanvas" width="460" height="460" aria-label="接眼レンズから見える景色"></canvas></div>
     <div class="controls" id="controls"></div>
     <p class="feedback" id="feedback" aria-live="polite"></p>
