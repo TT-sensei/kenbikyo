@@ -322,6 +322,15 @@ function drawView() {
   v.addColorStop(1, 'rgba(0,0,0,0.4)');
   ectx.fillStyle = v;
   ectx.fillRect(0, 0, W, W);
+
+  // ピントが合っていないときは、白いベールを重ねてぼけを見分けやすくする。
+  if (view.hasSlide) {
+    const haze = Math.min(0.62, Math.max(0, view.blur) * 0.038);
+    if (haze > 0.01) {
+      ectx.fillStyle = 'rgba(255,255,255,' + haze.toFixed(3) + ')';
+      ectx.fillRect(0, 0, W, W);
+    }
+  }
 }
 
 const steps = [
