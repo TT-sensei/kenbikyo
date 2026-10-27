@@ -95,8 +95,48 @@
   .step-badge { background: var(--teal); color: #fff; font-weight: 800; border-radius: 999px; padding: 4px 12px; font-size: 13px; flex: none; }
   .stars { font-size: 16px; letter-spacing: 2px; color: var(--accent); }
   .controls { display: grid; gap: 10px; margin-top: 10px; }
-  .controls label { font-size: 13px; font-weight: 700; color: #6b5f45; }
-  input[type="range"] { width: 100%; height: 36px; accent-color: var(--teal); }
+  .controls label { font-size: 15px; font-weight: 800; color: #514832; }
+  .slider-control {
+    display: grid; gap: 8px; padding: 12px 12px 10px;
+    border: 2px solid #d8e8e5; border-radius: 14px; background: #f5fbf9;
+  }
+  .slider-head { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
+  .slider-head label { font-size: 15px; }
+  .slider-value {
+    min-width: 44px; padding: 3px 9px; border-radius: 999px;
+    background: #dcefe9; color: #205f56; font-size: 14px; font-weight: 800;
+    text-align: center; font-variant-numeric: tabular-nums;
+  }
+  input[type="range"].learning-slider {
+    display: block; width: 100%; height: 44px; margin: 0; padding: 0;
+    appearance: none; -webkit-appearance: none; background: transparent;
+    accent-color: var(--teal); cursor: pointer; touch-action: pan-y;
+  }
+  input[type="range"].learning-slider::-webkit-slider-runnable-track {
+    height: 10px; border-radius: 999px; background: #c9ded9;
+    border: 1px solid #a8cbc3;
+  }
+  input[type="range"].learning-slider::-webkit-slider-thumb {
+    -webkit-appearance: none; appearance: none; width: 28px; height: 28px;
+    margin-top: -10px; border-radius: 50%; background: var(--teal);
+    border: 3px solid #fff; box-shadow: 0 1px 5px rgba(28, 83, 74, .35);
+  }
+  input[type="range"].learning-slider::-moz-range-track {
+    height: 10px; border-radius: 999px; background: #c9ded9; border: 1px solid #a8cbc3;
+  }
+  input[type="range"].learning-slider::-moz-range-thumb {
+    width: 22px; height: 22px; border-radius: 50%; background: var(--teal);
+    border: 3px solid #fff; box-shadow: 0 1px 5px rgba(28, 83, 74, .35);
+  }
+  input[type="range"].learning-slider:focus-visible {
+    outline: 3px solid var(--accent); outline-offset: 4px; border-radius: 8px;
+  }
+  input[type="range"].learning-slider:disabled { opacity: .55; cursor: default; }
+  .slider-ends {
+    display: flex; justify-content: space-between; gap: 12px;
+    color: #6b786f; font-size: 12px; font-weight: 700;
+  }
+  .focus-slider { margin-top: 2px; }
   .big-button {
     font: inherit; font-size: 16px; font-weight: 800; cursor: pointer; border: none;
     background: var(--teal); color: #fff; padding: 13px 16px; border-radius: 14px; width: 100%;
