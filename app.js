@@ -137,57 +137,17 @@ scope.position.y = -0.55;
 let rotY = 0.55, rotX = 0.06, targetRotY = 0.55, targetRotX = 0.06;
 let dragging = false, lastX = 0, lastY = 0, lastTouchAt = 0;
 const reduceMotion = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-const raycaster = new THREE.Raycaster();
-const pointerNdc = new THREE.Vector2();
-let focusDragging = false, focusDragMode = '', focusDragValue = 0, focusDragLastY = 0;
-function focusKnobHit(e) {
-  const mode = steps[stepIdx] && steps[stepIdx].control;
-  if (!['coarse', 'fine1', 'rev100', 'rev400'].includes(mode)) return false;
-  if ((mode === 'rev100' || mode === 'rev400') && !document.querySelector('#controls .mag-box')) return false;
-  const ids = mode === 'coarse' ? ['coarse'] : ['fine'];
-  const meshes = ids.flatMap(id => partMeshes[id] || []);
-  const r = canvas.getBoundingClientRect();
-  pointerNdc.set(((e.clientX-r.left)/r.width)*2-1, -((e.clientY-r.top)/r.height)*2+1);
-  raycaster.setFromCamera(pointerNdc, camera);
-  return raycaster.intersectObjects(meshes, false).length > 0;
-}
-function moveFocusKnob(dy) {
-  const mode = steps[stepIdx].control;
-  focusDragValue = THREE.MathUtils.clamp(focusDragValue - dy * 0.8, -50, 100);
-  (partMeshes[focusDragMode] || []).forEach(m => { m.rotation.x += dy * 0.012; });
-  if (mode === 'coarse') {
-    const v = THREE.MathUtils.clamp(focusDragValue, 0, 100);
-    anim.tubeTarget = 0.34 - (v/100)*0.1;
-    view.blur = Math.abs(v-58)/58*15+0.4;
-    drawView();
-    if (Math.abs(v-58)<=5) completeStep();
-  } else {
-    const target = mode === 'fine1' ? 8 : mode === 'rev100' ? -6 : 14;
-    const v = THREE.MathUtils.clamp(focusDragValue, -50, 50);
-    view.blur = Math.abs(v-target)/(mode === 'fine1' ? 50 : 50)*(mode === 'fine1' ? 5 : 6)+0.2;
-    drawView();
-    if (Math.abs(v-target) <= (mode === 'fine1' ? 4 : 5)) completeStep();
-  }
-}
 canvas.addEventListener('pointerdown', e => {
-  if (focusKnobHit(e)) {
-    const mode = steps[stepIdx].control;
-    focusDragMode = mode === 'coarse' ? 'coarse' : 'fine';
-    focusDragValue = mode === 'coarse' ? 0 : mode === 'fine1' ? 28 : mode === 'rev100' ? -22 : 30;
-    focusDragging = true; focusDragLastY = e.clientY;
-    canvas.setPointerCapture(e.pointerId); canvas.style.cursor = 'ns-resize';
-    e.preventDefault(); return;
-  }
-  dragging = true; lastX = e.clientX; lastY = e.clientY; canvas.setPointerCapture(e.pointerId);
+  dragging = true; lastX = e.clientX; lastY = e.clientY;
+  if (canvas.setPointerCapture) canvas.setPointerCapture(e.pointerId);
 });
 canvas.addEventListener('pointermove', e => {
-  if (focusDragging) { const dy=e.clientY-focusDragLastY; focusDragLastY=e.clientY; moveFocusKnob(dy); lastTouchAt=performance.now(); return; }
   if (!dragging) return;
   targetRotY += (e.clientX-lastX)*0.012;
   targetRotX = THREE.MathUtils.clamp(targetRotX+(e.clientY-lastY)*0.005,-0.12,0.42);
   lastX=e.clientX; lastY=e.clientY; lastTouchAt=performance.now();
 });
-function endCanvasPointer() { dragging=false; focusDragging=false; canvas.style.cursor='grab'; lastTouchAt=performance.now(); }
+function endCanvasPointer() { dragging=false; canvas.style.cursor='grab'; lastTouchAt=performance.now(); }
 canvas.addEventListener('pointerup', endCanvasPointer);
 canvas.addEventListener('pointercancel', endCanvasPointer);
 document.getElementById('resetView').addEventListener('click', () => {
@@ -413,16 +373,34 @@ function completeStep() {
   setTimeout(() => { if (stepIdx < steps.length - 1) { stepIdx++; showStep(); } else { showClear(); } }, 1000);
 }
 let sliderCount = 0;
-function sliderRow(label, min, max, val) {
+function sliderRow(label, min, max, val, startText = '小さく', endText = '大きく') {
   const wrap = document.createElement('div');
+  wrap.className = 'slider-control';
+  const head = document.createElement('div');
+  head.className = 'slider-head';
   const lab = document.createElement('label');
   lab.textContent = label;
+  const output = document.createElement('output');
   const input = document.createElement('input');
   input.id = 'control-range-' + (++sliderCount);
   lab.htmlFor = input.id;
   input.type = 'range'; input.min = min; input.max = max; input.value = val;
-  wrap.append(lab, input);
-  return { wrap, input };
+  input.className = 'learning-slider';
+  input.setAttribute('aria-label', label);
+  output.htmlFor = input.id;
+  output.className = 'slider-value';
+  output.textContent = val;
+  const ends = document.createElement('div');
+  ends.className = 'slider-ends';
+  const start = document.createElement('span');
+  const end = document.createElement('span');
+  start.textContent = startText;
+  end.textContent = endText;
+  ends.append(start, end);
+  head.append(lab, output);
+  wrap.append(head, input, ends);
+  input.addEventListener('input', () => { output.textContent = input.value; });
+  return { wrap, input, output };
 }
 function bigButton(text, cls) {
   const b = document.createElement('button');
@@ -545,23 +523,32 @@ function showStep() {
       if (e.key === 'Enter' || e.key === ' ') stop();
     });
   }
-  if (kind === 'coarse') {
-    const hint = document.createElement('div');
-    hint.className = 'mag-box';
-    hint.textContent = '3Dの顕微鏡にある「ピント調節ネジ（大）」を上下にドラッグして、ピントを合わせよう。';
-    controlsEl.appendChild(hint);
-    setFeedback('ぼやけて見えるね。顕微鏡のネジをさわって動かそう。', '');
-  }
-  if (kind === 'fine1') {
-    const hint = document.createElement('div');
-    hint.className = 'mag-box';
-    hint.textContent = '3Dの顕微鏡にある「ピント調節ネジ（小）」を上下にドラッグして、くっきりさせよう。';
-    controlsEl.appendChild(hint);
-    setFeedback('最後は少しずつ。小さいネジを動かしてね。', '');
+  if (kind === 'coarse' || kind === 'fine1') {
+    const isCoarse = kind === 'coarse';
+    const { wrap, input } = sliderRow(
+      isCoarse ? 'ピント調節ネジ（大）' : 'ピント調節ネジ（小）',
+      0, 100, 0, '調節をはじめる', 'ピントが合う'
+    );
+    wrap.classList.add('focus-slider');
+    controlsEl.appendChild(wrap);
+    setFeedback(isCoarse ? 'スライダーを少しずつ動かして、ぼやけた景色をはっきりさせよう。' : '小さい調節ネジは、少しずつ動かすのがコツだよ。', '');
+    input.addEventListener('input', () => {
+      const v = Number(input.value);
+      const target = 58;
+      if (isCoarse) {
+        anim.tubeTarget = 0.34 - (v / 100) * 0.1;
+        view.blur = Math.abs(v - target) / target * 15 + 0.4;
+      } else {
+        view.blur = Math.abs(v - target) / 58 * 5 + 0.2;
+      }
+      drawView();
+      if (Math.abs(v - target) <= 3) {
+        input.disabled = true;
+        completeStep();
+      }
+    });
   }
   if (kind === 'rev100' || kind === 'rev400') {
-    const target = kind === 'rev100' ? -6 : 14;
-    const startVal = kind === 'rev100' ? -22 : 30;
     const b = bigButton('レボルバーを 回す（カチッ）');
     controlsEl.appendChild(b);
     b.addEventListener('click', () => {
@@ -570,11 +557,20 @@ function showStep() {
       view.mag = kind === 'rev100' ? 2.1 : 3.8;
       view.blur = 7;
       drawView();
-      setFeedback('倍率が 上がった！小さい調節ネジで ピントを 合わせ直そう。', '');
-      const hint = document.createElement('div');
-      hint.className = 'mag-box';
-      hint.textContent = '3Dの顕微鏡にある「ピント調節ネジ（小）」を上下にドラッグして、ピントを合わせ直そう。';
-      controlsEl.appendChild(hint);
+      setFeedback('倍率が 上がった！スライダーでピントを 合わせ直そう。', '');
+      const { wrap, input } = sliderRow('ピント調節ネジ（小）', 0, 100, 0, '調節をはじめる', 'ピントが合う');
+      wrap.classList.add('focus-slider');
+      controlsEl.appendChild(wrap);
+      input.addEventListener('input', () => {
+        const v = Number(input.value);
+        const target = kind === 'rev100' ? 44 : 64;
+        view.blur = Math.abs(v - target) / 50 * 6 + 0.2;
+        drawView();
+        if (Math.abs(v - target) <= 3) {
+          input.disabled = true;
+          completeStep();
+        }
+      });
     });
   }
   if (kind === 'diaphragm') {
